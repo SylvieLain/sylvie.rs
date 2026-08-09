@@ -25,7 +25,7 @@
         theme: {
           extend: {
             fontFamily: {
-              display: ['"Bodoni Moda"', 'serif'],
+              display: ['"Bodoni Moda"', '"Noto Serif SC"', 'serif'],
               sans: ['"Inter"', '"Noto Sans SC"', 'system-ui', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'monospace'],
             }
@@ -35,7 +35,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
       :root {
         --page-bg: #F3F0E9;
@@ -46,7 +46,7 @@
         --text-faint: #6C6962;
         --border: rgba(20,20,20,0.18);
         --border-light: rgba(20,20,20,0.11);
-        --accent: #63B58D;
+        --accent: #2F7453;
       }
       .dark {
         --page-bg: #101113;
@@ -54,13 +54,13 @@
         --text-primary: #E8E5DF;
         --text-body: #C3C0BA;
         --text-muted: #92908B;
-        --text-faint: #74736F;
+        --text-faint: #85827C;
         --border: rgba(255,255,255,0.09);
         --border-light: rgba(255,255,255,0.06);
         --accent: #63B58D;
       }
       html { scroll-behavior: smooth; }
-      body { -webkit-font-smoothing: auto; -moz-osx-font-smoothing: auto; }
+      body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
       h1, h2, h3 { text-wrap: balance; }
       .font-mono { font-variant-numeric: tabular-nums; }
       ::selection { background: rgba(99, 181, 141, 0.2); color: inherit; }
@@ -82,6 +82,25 @@
         font-optical-sizing: none;
         font-variation-settings: "opsz" 36, "wght" 500;
         font-weight: 500;
+      }
+
+      .hero-flourish {
+        margin-left: 0.015em;
+        font-style: italic;
+        font-weight: 400;
+      }
+
+      .editorial-heading {
+        font-family: 'Bodoni Moda', 'Noto Serif SC', serif;
+        font-weight: 500;
+        letter-spacing: -0.018em;
+      }
+
+      .archive-index {
+        font-family: 'Bodoni Moda', 'Noto Serif SC', serif;
+        font-style: italic;
+        font-weight: 400;
+        letter-spacing: 0.035em;
       }
 
       .tag-pill {
@@ -145,15 +164,11 @@
         <p class="font-mono text-[11px] text-[var(--text-muted)] font-medium uppercase tracking-[0.14em]">Robotics / Vision / Optics</p>
 
         <h1 class="hero-wordmark font-display text-[clamp(2.6rem,15vw,4.8rem)] lg:text-[clamp(4.5rem,6.7vw,7.2rem)] leading-[0.88] tracking-[-0.018em] text-[var(--text-primary)] mt-4 lg:mt-6">
-          VifArgent
+          Vif<span class="hero-flourish">Argent</span>
         </h1>
 
         <p class="text-[18px] sm:text-[24px] lg:text-[26px] font-medium leading-[1.35] text-[var(--text-primary)] mt-4 lg:mt-7">
           机器、视觉，以及光的记录
-        </p>
-
-        <p class="text-[14px] sm:text-[16px] leading-[1.75] font-medium text-[var(--text-body)] max-w-[420px] border-l border-[#63B58D]/35 pl-3 sm:pl-4 mt-3 lg:mt-5">
-          机器人工程在读，关注嵌入式系统、算法闭环与计算机视觉；用 Sony A7R2 记录微观结构与夜间光影。
         </p>
 
         <p class="font-mono text-[10px] sm:text-[11px] text-[var(--text-faint)] font-medium tracking-[0.04em] mt-4 lg:mt-6">
@@ -202,8 +217,8 @@
     <!-- Technical Capabilities: structured matrix -->
     <section class="py-8 lg:py-10 border-t border-[var(--border)] reveal">
       <div class="flex items-baseline justify-between mb-6 lg:mb-8">
-        <h2 class="text-[20px] sm:text-[26px] font-semibold leading-tight">技术能力矩阵</h2>
-        <span class="font-mono text-[11px] text-[var(--text-faint)] font-medium tracking-[0.1em] hidden sm:inline">01 / Specifications</span>
+        <h2 class="editorial-heading text-[21px] sm:text-[27px] leading-tight">技术能力矩阵</h2>
+        <span class="archive-index text-[12px] text-[var(--text-faint)] hidden sm:inline">01 / Specifications</span>
       </div>
       <dl class="space-y-0 divide-y divide-[var(--border-light)]">
         <div class="py-3.5 grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-1 sm:gap-4 items-baseline">
@@ -228,8 +243,8 @@
     <!-- Projects: archive-style list -->
     <section id="projects" class="py-8 lg:py-10 border-t border-[var(--border)] reveal">
       <div class="flex items-baseline justify-between mb-6 lg:mb-8">
-        <h2 class="text-[20px] sm:text-[26px] font-semibold leading-tight">工程项目与研发里程碑</h2>
-        <span class="font-mono text-[11px] text-[var(--text-faint)] font-medium tracking-[0.1em] hidden sm:inline">02 / Engineering Log</span>
+        <h2 class="editorial-heading text-[21px] sm:text-[27px] leading-tight">工程项目与研发里程碑</h2>
+        <span class="archive-index text-[12px] text-[var(--text-faint)] hidden sm:inline">02 / Engineering Log</span>
       </div>
 
       <div class="divide-y divide-[var(--border-light)]">
@@ -276,8 +291,8 @@
     <!-- Photography -->
     <section id="photos" class="py-8 lg:py-10 border-t border-[var(--border)] reveal">
       <div class="flex items-baseline justify-between mb-6 lg:mb-8">
-        <h2 class="text-[20px] sm:text-[26px] font-semibold leading-tight">光学与摄影手记</h2>
-        <span class="font-mono text-[11px] text-[var(--text-faint)] font-medium tracking-[0.1em] hidden sm:inline">03 / Optical Record</span>
+        <h2 class="editorial-heading text-[21px] sm:text-[27px] leading-tight">光学与摄影手记</h2>
+        <span class="archive-index text-[12px] text-[var(--text-faint)] hidden sm:inline">03 / Optical Record</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
@@ -294,7 +309,7 @@
           </div>
           <figcaption class="space-y-1.5 px-0.5">
             <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <span class="text-[15px] font-semibold">浪潮与波光边缘</span>
+              <span class="editorial-heading text-[16px]">浪潮与波光边缘</span>
               <span class="font-mono text-[11px] text-[var(--accent)]">35mm · f/2.0</span>
             </div>
             <p class="text-[13px] leading-[1.6] text-[var(--text-body)]">暮色水面高光动态范围捕捉与暗部噪点压制。</p>
@@ -315,7 +330,7 @@
           </div>
           <figcaption class="space-y-1.5 px-0.5">
             <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <span class="text-[15px] font-semibold">玫瑰花窗微观光谱</span>
+              <span class="editorial-heading text-[16px]">玫瑰花窗微观光谱</span>
               <span class="font-mono text-[11px] text-[var(--accent)]">150mm · f/2.8</span>
             </div>
             <p class="text-[13px] leading-[1.6] text-[var(--text-body)]">长焦端高色彩饱和度透光结构与几何锐度测试。</p>
