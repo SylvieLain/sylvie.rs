@@ -83,10 +83,14 @@
       color: var(--ink);
       user-select: none;
       cursor: pointer;
-      transition: text-shadow 0.2s ease, transform 0.15s ease;
+      transition: text-shadow 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
     }
     h1:hover {
       text-shadow: -2px 0 rgba(210, 115, 138, 0.45), 2px 0 rgba(99, 181, 141, 0.35);
+    }
+    h1.locked {
+      cursor: default;
+      text-shadow: 0 0 22px rgba(99, 181, 141, 0.35);
     }
     h1.glitch {
       animation: glitchHit 0.36s steps(2, end);
@@ -105,7 +109,6 @@
       font-weight: 400;
     }
 
-    /* fauux-style signal equalizer */
     .signal-bar {
       margin-top: 1.5rem;
       font-size: 0.78rem;
@@ -146,7 +149,6 @@
       50% { transform: scale(1.22); }
     }
 
-    /* fauux-style rotating phrase */
     .phrase {
       margin-top: 1.15rem;
       font-size: 0.7rem;
@@ -166,7 +168,6 @@
       margin: 1.75rem auto 1.25rem;
     }
 
-    /* fauux-style invisible / visible toggle */
     .presence {
       font-size: 0.68rem;
       letter-spacing: 0.16em;
@@ -212,7 +213,7 @@
     <div class="signal-bar" aria-label="Signal pulse">
       <span class="d6">&#9553;</span><span class="d5">&#9618;</span><span class="d4">&#9617;</span>
       <span class="d2">&#9553;</span><span class="d1">&#9617;</span>
-      <button type="button" class="note-btn" id="sound-toggle" title="Wired hum">&#9835;</button>
+      <button type="button" class="note-btn playing" id="sound-toggle" title="Sound ON / OFF">&#9835;</button>
       <span class="d1">&#9617;</span><span class="d2">&#9553;</span>
       <span class="d4">&#9617;</span><span class="d5">&#9618;</span><span class="d6">&#9553;</span>
     </div>
@@ -249,30 +250,259 @@
     setInterval(nextPhrase, 2800);
     phraseEl.addEventListener("click", nextPhrase);
 
-    // Title glitch + click easter egg
     const titleEl = document.getElementById("title");
     const secretEl = document.getElementById("secret");
-    let titleClicks = 0;
+    const soundBtn = document.getElementById("sound-toggle");
     let secretTimer = null;
 
     function showSecret(msg) {
       secretEl.textContent = msg;
       secretEl.classList.add("show");
       clearTimeout(secretTimer);
-      secretTimer = setTimeout(() => secretEl.classList.remove("show"), 3600);
+      secretTimer = setTimeout(() => secretEl.classList.remove("show"), 3200);
     }
 
-    titleEl.addEventListener("click", () => {
+    // ---- Experimental Web Audio Engine (Sound ON by default) ----
+    let audioCtx = null;
+    let masterGain = null;
+    let humGain = null;
+    let soundEnabled = true;
+    let isTrackPlaying = false;
+    let trackLockTimer = null;
+    let lastTrackIdx = -1;
+
+    function ensureAudio() {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!audioCtx) {
+        audioCtx = new Ctx();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = soundEnabled ? 0.9 : 0;
+        masterGain.connect(audioCtx.destination);
+
+        // Subtle continuous Wired ambient hum
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        humGain = audioCtx.createGain();
+        osc1.type = "sine";
+        osc2.type = "triangle";
+        osc1.frequency.value = 82.41;
+        osc2.frequency.value = 123.47;
+        humGain.gain.value = 0.016;
+        osc1.connect(humGain);
+        osc2.connect(humGain);
+        humGain.connect(masterGain);
+        osc1.start();
+        osc2.start();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    // Attempt default autoplay immediately, and unlock seamlessly on first gesture
+    try { ensureAudio(); } catch (_) {}
+    ["pointerdown", "keydown"].forEach((evt) => {
+      window.addEventListener(evt, () => {
+        if (soundEnabled) ensureAudio();
+      }, { once: true });
+    });
+
+    soundBtn.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundBtn.classList.toggle("playing", soundEnabled);
+      if (soundEnabled) {
+        const ctx = ensureAudio();
+        if (ctx && masterGain) {
+          masterGain.gain.setTargetAtTime(0.9, ctx.currentTime, 0.08);
+        }
+      } else if (audioCtx && masterGain) {
+        masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.08);
+      }
+    });
+
+    // Experimental Track 1: "hello world" (Morse + formant resonance)
+    function playHelloWorld(ctx) {
+      const morse = ".... . .-.. .-.. --- / .-- --- .-. .-.. -..";
+      const unit = 0.068;
+      let t = ctx.currentTime + 0.05;
+
+      for (const ch of morse) {
+        if (ch === "." || ch === "-") {
+          const dur = ch === "." ? unit : unit * 2.7;
+          const osc = ctx.createOscillator();
+          const mod = ctx.createOscillator();
+          const modGain = ctx.createGain();
+          const env = ctx.createGain();
+
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(660, t);
+          osc.frequency.exponentialRampToValueAtTime(520, t + dur);
+          mod.frequency.value = 28;
+          modGain.gain.value = 18;
+          mod.connect(modGain);
+          modGain.connect(osc.frequency);
+
+          env.gain.setValueAtTime(0.0001, t);
+          env.gain.exponentialRampToValueAtTime(0.075, t + 0.012);
+          env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+          osc.connect(env);
+          env.connect(masterGain);
+          osc.start(t);
+          mod.start(t);
+          osc.stop(t + dur + 0.02);
+          mod.stop(t + dur + 0.02);
+          t += dur + unit * 0.85;
+        } else if (ch === " ") {
+          t += unit * 2.2;
+        } else if (ch === "/") {
+          t += unit * 3.2;
+        }
+      }
+      return (t - ctx.currentTime) * 1000;
+    }
+
+    // Experimental Track 2: Inharmonic Silver Chimes
+    function playSilverChimes(ctx) {
+      const freqs = [293.66, 415.30, 587.33, 622.25, 880.0, 1174.66];
+      const now = ctx.currentTime + 0.04;
+      let maxEnd = 0;
+
+      freqs.forEach((f, idx) => {
+        const start = now + idx * 0.42;
+        const dur = 1.9;
+        const osc = ctx.createOscillator();
+        const over = ctx.createOscillator();
+        const env = ctx.createGain();
+
+        osc.type = "sine";
+        over.type = "triangle";
+        osc.frequency.value = f;
+        over.frequency.value = f * 2.41;
+
+        env.gain.setValueAtTime(0.0001, start);
+        env.gain.exponentialRampToValueAtTime(0.05, start + 0.02);
+        env.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+        osc.connect(env);
+        over.connect(env);
+        env.connect(masterGain);
+        osc.start(start);
+        over.start(start);
+        osc.stop(start + dur + 0.05);
+        over.stop(start + dur + 0.05);
+        maxEnd = Math.max(maxEnd, (start + dur - now) * 1000);
+      });
+      return maxEnd;
+    }
+
+    // Experimental Track 3: Filtered Static Bloom + Sub Sweep
+    function playStaticBloom(ctx) {
+      const dur = 4.2;
+      const bufSize = Math.floor(ctx.sampleRate * dur);
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.45;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.Q.value = 6.5;
+      const now = ctx.currentTime;
+      filter.frequency.setValueAtTime(280, now);
+      filter.frequency.exponentialRampToValueAtTime(1900, now + 2.1);
+      filter.frequency.exponentialRampToValueAtTime(340, now + dur);
+
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0.0001, now);
+      env.gain.exponentialRampToValueAtTime(0.08, now + 1.1);
+      env.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+      noise.connect(filter);
+      filter.connect(env);
+      env.connect(masterGain);
+      noise.start(now);
+      noise.stop(now + dur + 0.05);
+
+      return dur * 1000;
+    }
+
+    // Experimental Track 4: Oscilloscope Micro-Pulses
+    function playMicroPulses(ctx) {
+      const now = ctx.currentTime + 0.03;
+      const steps = 14;
+      let t = now;
+      for (let i = 0; i < steps; i++) {
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        const freq = 180 + ((i * 197) % 920);
+        osc.type = i % 2 === 0 ? "square" : "sawtooth";
+        osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.55, t + 0.14);
+
+        env.gain.setValueAtTime(0.0001, t);
+        env.gain.exponentialRampToValueAtTime(0.035, t + 0.01);
+        env.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+
+        osc.connect(env);
+        env.connect(masterGain);
+        osc.start(t);
+        osc.stop(t + 0.18);
+        t += 0.24 + (i % 3) * 0.06;
+      }
+      return (t - now) * 1000;
+    }
+
+    const trackPool = [
+      { id: "hello_world", fn: playHelloWorld },
+      { id: "silver_chimes", fn: playSilverChimes },
+      { id: "static_bloom", fn: playStaticBloom },
+      { id: "micro_pulses", fn: playMicroPulses }
+    ];
+
+    function triggerRandomTrack() {
+      // Lock: ignore clicks while current track is still playing
+      if (isTrackPlaying) return;
+
+      if (!soundEnabled) {
+        soundEnabled = true;
+        soundBtn.classList.add("playing");
+      }
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      if (masterGain) {
+        masterGain.gain.setTargetAtTime(0.9, ctx.currentTime, 0.04);
+      }
+
+      let idx = Math.floor(Math.random() * trackPool.length);
+      if (trackPool.length > 1 && idx === lastTrackIdx) {
+        idx = (idx + 1) % trackPool.length;
+      }
+      lastTrackIdx = idx;
+
       titleEl.classList.remove("glitch");
       void titleEl.offsetWidth;
       titleEl.classList.add("glitch");
       nextPhrase();
-      titleClicks++;
-      if (titleClicks === 3) {
-        showSecret("LAYER 07 // PROTOCOL_7 ACCEPTED");
-        titleClicks = 0;
-      }
-    });
+
+      isTrackPlaying = true;
+      titleEl.classList.add("locked");
+
+      const durationMs = Math.max(800, trackPool[idx].fn(ctx));
+      clearTimeout(trackLockTimer);
+      trackLockTimer = setTimeout(() => {
+        isTrackPlaying = false;
+        titleEl.classList.remove("locked");
+      }, durationMs);
+    }
+
+    titleEl.addEventListener("click", triggerRandomTrack);
 
     // Invisible / Visible toggle
     let isVisible = false;
@@ -285,7 +515,7 @@
       presenceBtn.textContent = isVisible ? "[Go invisible]" : "[Go visible]";
     });
 
-    // Corner click easter egg
+    // Corner click
     document.querySelectorAll(".corner").forEach((c) => {
       c.addEventListener("click", () => {
         showSecret("NODE // " + c.getAttribute("title") + " LOCKED");
@@ -304,47 +534,6 @@
         showSecret("LET'S ALL LOVE LAIN");
         keyBuf = "";
       }
-    });
-
-    // Gentle Web Audio Wired hum toggle (no external files)
-    let audioCtx = null;
-    let humNodes = null;
-    const soundBtn = document.getElementById("sound-toggle");
-
-    soundBtn.addEventListener("click", () => {
-      if (humNodes) {
-        humNodes.gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
-        setTimeout(() => {
-          humNodes.osc1.stop();
-          humNodes.osc2.stop();
-          humNodes = null;
-        }, 380);
-        soundBtn.classList.remove("playing");
-        return;
-      }
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return;
-      if (!audioCtx) audioCtx = new Ctx();
-      if (audioCtx.state === "suspended") audioCtx.resume();
-
-      const osc1 = audioCtx.createOscillator();
-      const osc2 = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc1.type = "sine";
-      osc2.type = "triangle";
-      osc1.frequency.value = 110;
-      osc2.frequency.value = 164.81;
-      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.025, audioCtx.currentTime + 0.6);
-
-      osc1.connect(gain);
-      osc2.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc1.start();
-      osc2.start();
-      humNodes = { osc1, osc2, gain };
-      soundBtn.classList.add("playing");
-      showSecret("AUDIO // WIRED HUM ON");
     });
   </script>
 </body>
