@@ -4,34 +4,69 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#101113">
-  <title>VifArgent</title>
+  <title>⌈ VifArgent ⌋</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M10 12H23L34 45L45 12H54L37 54H27L10 12Z' fill='%23FFFFFF'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #101113;
+      --ink: #E8E5DF;
+      --muted: #85827C;
+      --lain: #d2738a;
+      --line: rgba(232, 229, 223, 0.12);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      height: 100%;
-      background: #101113;
-      color: #E8E5DF;
-      font-family: "Bodoni Moda", "Noto Serif SC", serif;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "JetBrains Mono", monospace;
       -webkit-font-smoothing: antialiased;
     }
     body {
+      min-height: 100vh;
       display: grid;
       place-items: center;
-      padding: 2rem;
+      padding: 2rem 1.25rem;
+      background-image:
+        radial-gradient(circle at 50% 45%, rgba(210, 115, 138, 0.045), transparent 55%),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 3px);
     }
+    .frame {
+      position: relative;
+      width: min(560px, 100%);
+      padding: 3.4rem 2.2rem 2.8rem;
+      text-align: center;
+    }
+    .corner {
+      position: absolute;
+      font-size: 1.05rem;
+      line-height: 1;
+      color: var(--muted);
+      user-select: none;
+      animation: wiredPulse 4.2s ease-in-out infinite;
+    }
+    .corner.tl { top: 0; left: 0; }
+    .corner.tr { top: 0; right: 0; animation-delay: 0.6s; }
+    .corner.bl { bottom: 0; left: 0; animation-delay: 1.2s; }
+    .corner.br { bottom: 0; right: 0; animation-delay: 1.8s; }
+
+    @keyframes wiredPulse {
+      0%, 100% { opacity: 0.22; }
+      50% { opacity: 0.78; color: var(--lain); }
+    }
+
     h1 {
       font-family: "Bodoni Moda", "Noto Serif SC", serif;
       font-optical-sizing: none;
       font-variation-settings: "opsz" 36, "wght" 500;
       font-weight: 500;
-      font-size: clamp(2.6rem, 11vw, 5.5rem);
+      font-size: clamp(2.6rem, 11vw, 5.2rem);
       line-height: 0.88;
       letter-spacing: -0.018em;
-      color: #E8E5DF;
+      color: var(--ink);
       user-select: none;
     }
     .flourish {
@@ -39,9 +74,201 @@
       font-style: italic;
       font-weight: 400;
     }
+
+    .whisper {
+      margin-top: 1.25rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.26em;
+      color: var(--muted);
+      min-height: 1.2em;
+      transition: opacity 0.25s ease;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--line);
+      width: 72%;
+      margin: 1.85rem auto 1.45rem;
+    }
+
+    .navline {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 0.55rem 0.75rem;
+      font-size: 0.76rem;
+      letter-spacing: 0.16em;
+    }
+    .navline a,
+    .navline button {
+      background: none;
+      border: none;
+      padding: 0.15rem 0.2rem;
+      font: inherit;
+      letter-spacing: inherit;
+      color: var(--lain);
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.18s ease, text-shadow 0.18s ease;
+    }
+    .navline a:hover,
+    .navline button:hover,
+    .navline button.active {
+      color: var(--ink);
+      text-shadow: 0 0 10px rgba(210, 115, 138, 0.45);
+    }
+    .sep {
+      color: rgba(232, 229, 223, 0.22);
+      user-select: none;
+    }
+
+    .panel {
+      display: none;
+      margin: 1.65rem auto 0;
+      padding: 1.15rem 1.25rem;
+      max-width: 440px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.015);
+      text-align: left;
+      font-size: 0.76rem;
+      line-height: 1.85;
+      letter-spacing: 0.06em;
+      color: rgba(232, 229, 223, 0.86);
+    }
+    .panel.open {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.65rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px dashed var(--line);
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font: inherit;
+      color: var(--lain);
+      cursor: pointer;
+      letter-spacing: 0.14em;
+    }
+    .close-btn:hover { color: var(--ink); }
+    .panel a {
+      color: var(--lain);
+      text-decoration: none;
+    }
+    .panel a:hover {
+      color: var(--ink);
+      text-decoration: underline;
+    }
+
+    .status {
+      margin-top: 1.7rem;
+      font-size: 0.66rem;
+      letter-spacing: 0.2em;
+      color: rgba(133, 130, 124, 0.75);
+    }
   </style>
 </head>
 <body>
-  <h1>Vif<span class="flourish">Argent</span></h1>
+  <main class="frame">
+    <span class="corner tl" aria-hidden="true">&#8968;</span>
+    <span class="corner tr" aria-hidden="true">&#8969;</span>
+    <span class="corner bl" aria-hidden="true">&#8970;</span>
+    <span class="corner br" aria-hidden="true">&#8971;</span>
+
+    <h1>Vif<span class="flourish">Argent</span></h1>
+    <p class="whisper" id="whisper">[present day, present time]</p>
+
+    <hr class="divider">
+
+    <nav class="navline" aria-label="Primary navigation">
+      <button type="button" data-panel="about">About</button>
+      <span class="sep" aria-hidden="true">&#65073;</span>
+      <button type="button" data-panel="notes">Notes</button>
+      <span class="sep" aria-hidden="true">&#65073;</span>
+      <button type="button" data-panel="signal">Signal</button>
+      <span class="sep" aria-hidden="true">&#65073;</span>
+      <a href="https://github.com/SylvieLain" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+
+    <section class="panel" id="panel" aria-live="polite">
+      <div class="panel-head">
+        <span id="panel-title">About</span>
+        <button type="button" class="close-btn" id="close-panel">[close]</button>
+      </div>
+      <div id="panel-body"></div>
+    </section>
+
+    <p class="status">layer // 00 &nbsp;·&nbsp; sylvie.rs</p>
+  </main>
+
+  <script>
+    const whispers = [
+      "[present day, present time]",
+      "[wired node // 00]",
+      "[no matter where you are]",
+      "[everyone is connected]"
+    ];
+    let wIndex = 0;
+    const whisperEl = document.getElementById("whisper");
+    setInterval(() => {
+      wIndex = (wIndex + 1) % whispers.length;
+      whisperEl.textContent = whispers[wIndex];
+    }, 3200);
+
+    const content = {
+      about: {
+        title: "About // VifArgent",
+        html: "VifArgent — minimal personal node at <code>sylvie.rs</code>.<br>Quiet surface on the Wired; everything else stays offline."
+      },
+      notes: {
+        title: "Notes // Layer",
+        html: "No public feed mounted here.<br>Only static light, typography, and open signals."
+      },
+      signal: {
+        title: "Signal // Endpoints",
+        html: "Primary: <a href='https://sylvie.rs'>sylvie.rs</a><br>Mirror: <a href='https://sylvie.vifargent.workers.dev' target='_blank' rel='noopener noreferrer'>sylvie.vifargent.workers.dev</a><br>Code: <a href='https://github.com/SylvieLain' target='_blank' rel='noopener noreferrer'>github.com/SylvieLain</a>"
+      }
+    };
+
+    const panel = document.getElementById("panel");
+    const panelTitle = document.getElementById("panel-title");
+    const panelBody = document.getElementById("panel-body");
+    const buttons = document.querySelectorAll(".navline button[data-panel]");
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.panel;
+        const alreadyOpen = panel.classList.contains("open") && btn.classList.contains("active");
+        buttons.forEach((b) => b.classList.remove("active"));
+        if (alreadyOpen) {
+          panel.classList.remove("open");
+          return;
+        }
+        btn.classList.add("active");
+        panelTitle.textContent = content[key].title;
+        panelBody.innerHTML = content[key].html;
+        panel.classList.add("open");
+      });
+    });
+
+    document.getElementById("close-panel").addEventListener("click", () => {
+      panel.classList.remove("open");
+      buttons.forEach((b) => b.classList.remove("active"));
+    });
+  </script>
 </body>
 </html>
